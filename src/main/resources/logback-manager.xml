@@ -10,13 +10,13 @@
 
     <!-- INFO 输出配置 -->
     <appender name="logInfoFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>/data/appLogs/mbp-manager.log</File>
+        <File>/data/hhysLogs/mbp-manager.log</File>
         <encoder>
             <Pattern>[%date] [%-5level] %logger %line --%mdc{client} [%X{LOG_ID}] %msg%n</Pattern>
             <charset>UTF-8</charset>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/data/appLogs/mbp-manager.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>/data/hhysLogs/mbp-manager.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <TimeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>1024MB</maxFileSize>
