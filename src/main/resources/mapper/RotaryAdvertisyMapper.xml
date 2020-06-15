@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.art.manager.mapper.RotaryAdvertisyMapper">
+    <resultMap id="BaseResultMap" type="com.art.manager.pojo.RotaryAdvertisy">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="picture" property="picture" jdbcType="VARCHAR"/>
+        <result column="advertisy_url" property="advertisyUrl" jdbcType="VARCHAR"/>
+        <result column="operator" property="operator" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+      id, picture, advertisy_url, operator, status, sort, create_time, update_time
+  </sql>
+
+
+    <select id="getList" parameterType="java.util.Map" resultType="com.art.manager.vo.RotaryAdvertisyVo">
+        select
+        <include refid="Base_Column_List" />
+        from t_rotary_advertisy
+        where 1=1
+        <if test="id != null and id != ''">
+            and id = #{id}
+        </if>
+        <if test="status != null and status != ''">
+            and status like CONCAT('%',#{status},'%')
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND  create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND  create_time &lt; DATE_ADD(#{endTime},INTERVAL 1 DAY)
+        </if>
+        and status != 2
+        order by status desc, sort desc
+    </select>
+    
+    <select id="getSortById" resultType="com.art.manager.pojo.RotaryAdvertisy">
+        select
+        <include refid="Base_Column_List"/>
+        from t_rotary_advertisy where id = #{id}
+    </select>
+
+    <select id="getUpData" resultType="com.art.manager.pojo.RotaryAdvertisy">
+        select
+        <include refid="Base_Column_List"/>
+        from t_rotary_advertisy
+        where sort &gt; #{sort} and status != 2 order by status desc, sort asc limit 0,1
+    </select>
+
+    <select id="getNextData" resultType="com.art.manager.pojo.RotaryAdvertisy">
+        select
+        <include refid="Base_Column_List"/>
+        from t_rotary_advertisy
+        where sort &lt; #{sort} and status != 2 order by status desc, sort desc limit 0,1
+    </select>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.art.manager.pojo.RotaryAdvertisy">
+        update t_rotary_advertisy
+        set sort = #{sort}
+        where id = #{id}
+    </update>
+
+    <update id="updateStatusById">
+        update t_rotary_advertisy
+        set status = #{status}, sort = #{sort}
+        where id = #{id}
+    </update>
+
+    <insert id="insert" parameterType="com.art.manager.pojo.RotaryAdvertisy">
+      insert into t_rotary_advertisy (picture, advertisy_url, operator,status, sort, create_time, update_time)
+      values (#{picture}, #{advertisyUrl}, #{operator}, #{status}, #{sort}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update" parameterType="com.art.manager.pojo.RotaryAdvertisy">
+        update t_rotary_advertisy
+        set picture = #{picture},
+        advertisy_url = #{advertisyUrl},
+        operator = #{operator},
+        status = #{status},
+        sort = #{sort},
+        create_time = #{createTime},
+        update_time = #{updateTime}
+        where id = #{id}
+    </update>
+    <select id="selectSort" resultType="java.lang.Integer">
+        select IFNULL(MAX(sort),0) sort from t_rotary_advertisy where status = #{status}
+    </select>
+
+    <update id="delete" parameterType="java.util.List">
+        update t_rotary_advertisy
+        set status = 2
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectId" resultType="java.lang.Long">
+        select id from t_rotary_advertisy where sort > 19999 and status != 2 order by sort asc limit 1
+    </select>
+
+    <select id="queryAll" resultType="com.art.manager.dto.RotaryAdvertisyDto">
+        select id, picture, advertisy_url from t_rotary_advertisy where status !=2  order by status desc, sort desc
+    </select>
+</mapper>

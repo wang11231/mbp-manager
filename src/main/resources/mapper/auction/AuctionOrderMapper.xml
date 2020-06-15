@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.manager.mapper.auction.AuctionOrderMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.art.manager.pojo.auction.AuctionOrder">
+    insert into t_auction_order
+     (order_no,
+      goods_id,
+      goods_name,
+      buyer_id,
+      buyer_name,
+      payer_id,
+      payer_name,
+      deal_price,
+      buyer_date,
+      expire_date,
+      deal_date,
+      category_id,
+      transport_company,
+      transport_no,
+      transport_addr
+      )
+    values
+     (#{orderNo},
+      #{goodsId},
+      #{goodsName},
+      #{buyerId},
+      #{buyerName},
+      #{payerId},
+      #{payerName},
+      #{dealPrice},
+      #{buyerDate},
+      #{expireDate},
+      #{dealDate},
+      #{styleCode},
+      #{transportCompany},
+      #{transportNo},
+      #{transportAddr}
+      )
+  </insert>
+
+    <!-- 代理出价 -->
+    <insert id="insertByProxy" parameterType="com.art.manager.pojo.auction.AuctionOrder">
+      insert into t_auction_order(order_no,goods_id,goods_name, buyer_name,deal_price,buyer_date,expire_date,category_id,order_status,receive_addr,receive_contact,receive_phone)
+      value (#{orderNo},#{goodsId}, #{goodsName},#{buyerName},#{dealPrice},#{buyerDate},DATE_ADD(#{buyerDate},INTERVAL 3 day),#{styleCode},'1',#{receiveAddr},#{receiveContact},#{receivePhone})
+    </insert>
+
+    <!-- 一口价 -->
+    <insert id="insertOnePrice" parameterType="com.art.manager.request.AuctionOrderReq">
+      insert into t_auction_order(order_no,goods_id,goods_name, buyer_name,deal_price,buyer_date,expire_date,category_id,order_status,receive_addr,receive_contact,receive_phone)
+      select #{orderNo},g.id, g.goods_name,#{username},g.one_price+IFNULL(g.transport_amount,0),#{buyerDate},DATE_ADD(#{buyerDate},INTERVAL 3 day),g.category_id,'1', addr.address, addr.receiver_name, addr.receiver_mobile
+      from t_auction_goods g left join (select concat(cn_address,detailed_address) address, receiver_name,receiver_mobile from t_receive_address where id = #{addrId}) addr on 1=1
+      where g.id = #{goodsId}
+      and g.status = 1
+    </insert>
+
+    <!-- 立即出价 -->
+    <insert id="insertImmediatelyPrice" parameterType="com.art.manager.request.AuctionOrderReq">
+      insert into t_auction_order(order_no,goods_id,goods_name, buyer_name,deal_price,buyer_date,expire_date,category_id,order_status,receive_addr,receive_contact,receive_phone)
+      select #{orderNo},g.id, g.goods_name,#{username},#{currentPrice},#{buyerDate},DATE_ADD(#{buyerDate},INTERVAL 3 day),g.category_id,'1', addr.address, addr.receiver_name, addr.receiver_mobile
+      from t_auction_goods g left join (select concat(cn_address,detailed_address) address, receiver_name,receiver_mobile from t_receive_address where id = #{addrId}) addr on 1=1
+      where g.id = #{goodsId}
+      and g.status = 1
+    </insert>
+
+    <insert id="insertByProcess" useGeneratedKeys="true" keyProperty="id"  parameterType="com.art.manager.request.AuctionOrderReq">
+        insert into t_auction_order(order_no,goods_id,goods_name,buyer_name,deal_price,buyer_date,expire_date,category_id,order_status)
+                           select #{orderNo},tmp1.id, tmp1.goods_name,tmp2.username,tmp2.current_price + IFNULL(tmp1.transport_amount, 0),#{buyerDate},DATE_ADD(#{buyerDate},INTERVAL 3 day),tmp1.category_id,'1'
+        from (select g.id,g.goods_name,g.category_id,g.transport_amount from t_auction_goods g where g.id = #{goodsId} and g.status = 1) tmp1,
+             (select p.username,p.current_price from t_auction_process p where p.goods_id = #{goodsId} and p.status = 1 order by p.id desc limit 1) tmp2
+    </insert>
+
+    <update id="updateByOrderNo" parameterType="com.art.manager.pojo.auction.AuctionOrder">
+        update t_auction_order
+        <set >
+            <if test="goodsId != null" >
+                goods_id = #{goodsId},
+            </if>
+            <if test="goodsName != null and goodsName != ''" >
+                goods_name = #{goodsName},
+            </if>
+            <if test="buyerId != null" >
+                buyer_id = #{buyerId},
+            </if>
+            <if test="buyerName != null and buyerName != ''" >
+                buyer_name = #{buyerName},
+            </if>
+            <if test="payerId != null" >
+                payer_id = #{payerId},
+            </if>
+            <if test="payerName != null and payerName != ''" >
+                payer_name = #{payerName},
+            </if>
+            <if test="dealPrice != null" >
+                deal_price = #{dealPrice},
+            </if>
+            <if test="buyerDate != null" >
+                buyer_date = #{buyerDate},
+            </if>
+            <if test="expireDate != null" >
+                expire_date = #{expireDate},
+            </if>
+            <if test="dealDate != null" >
+                deal_date = #{dealDate},
+            </if>
+            <if test="styleCode != null" >
+                category_id = #{styleCode},
+            </if>
+            <if test="transportCompany != null and transportCompany != ''" >
+                transport_company = #{transportCompany},
+            </if>
+            <if test="transportNo != null and transportNo != ''" >
+                transport_no = #{transportNo},
+            </if>
+            <if test="transportAddr != null and transportAddr != ''" >
+                transport_addr = #{transportAddr},
+            </if>
+        </set>
+        where order_no = #{orderNo}
+        and status = 1
+    </update>
+
+    <select id="getList" parameterType="com.art.manager.request.AuctionOrderReq" resultType="com.art.manager.pojo.auction.AuctionOrder">
+        SELECT
+        a.id,
+        a.order_no orderNo,
+        a.goods_id goodsId,
+        a.goods_name goodsName,
+        a.buyer_id buyerId,
+        a.buyer_name buyerName,
+        a.payer_id payerId,
+        a.payer_name payerName,
+        a.deal_price dealPrice,
+        a.buyer_date buyerDate,
+        a.expire_date expireDate,
+        a.deal_date dealDate,
+        a.category_id styleCode,
+        a.transport_company transportCompany,
+        a.transport_no transportNo,
+        a.transport_addr transportAddr,
+        a.order_status orderStatus,
+        a.operator,
+        b.transport_amount transportamount,
+        a.receive_addr receiveAddr,
+        a.receive_contact receiveContact,
+        a.receive_phone receivePhone,
+        b.auction_goods_id auctionGoodsId
+        FROM t_auction_order a
+        inner join t_auction_goods b
+        where a.goods_id = b.id
+        and a.status = 1
+        <if test="orderNo != null and orderNo != ''">
+            and a.`order_no` = #{orderNo}
+        </if>
+        <if test="goodsName != null and goodsName != ''">
+            and a.`goods_name` like concat('%',#{goodsName},'%')
+        </if>
+        <if test="buyerName != null and buyerName != ''">
+            and a.buyer_name = #{buyerName}
+        </if>
+        <if test="orderStatus != null and orderStatus != ''">
+            and a.order_status = #{orderStatus}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            and a.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and a.create_time &lt; DATE_ADD(#{endTime},INTERVAL 1 DAY)
+        </if>
+        order by a.id desc
+    </select>
+
+    <select id="selectByOrderNo" parameterType="com.art.manager.request.AuctionOrderReq" resultType="com.art.manager.pojo.auction.AuctionOrder">
+	SELECT
+      o.id,
+      o.order_no orderNo,
+      o.goods_id goodsId,
+      o.goods_name goodsName,
+      o.buyer_id buyerId,
+      o.buyer_name buyerName,
+      o.payer_id payerId,
+      o.payer_name payerName,
+      o.deal_price dealPrice,
+      o.buyer_date buyerDate,
+      o.expire_date expireDate,
+      o.deal_date dealDate,
+      o.category_id styleCode,
+      o.transport_company transportCompany,
+      o.transport_no transportNo,
+      o.transport_addr transportAddr,
+      o.order_status orderStatus,
+      o.create_time createTime,
+      o.update_time updateTime,
+      o.receive_addr receiveAddr,
+      o.receive_contact receiveContact,
+      o.receive_phone receivePhone,
+      o.pay_date payDate
+    FROM t_auction_order o
+    WHERE order_no = #{orderNo}
+        and o.status = 1
+  </select>
+
+    <select id="selectByGoodsId" parameterType="com.art.manager.request.AuctionOrderReq" resultType="com.art.manager.pojo.auction.AuctionOrder">
+	SELECT
+      o.id,
+      o.order_no orderNo,
+      o.goods_id goodsId,
+      o.goods_name goodsName,
+      o.buyer_id buyerId,
+      o.buyer_name buyerName,
+      o.payer_id payerId,
+      o.payer_name payerName,
+      o.deal_price dealPrice,
+      o.buyer_date buyerDate,
+      o.expire_date expireDate,
+      o.deal_date dealDate,
+      o.category_id styleCode,
+      o.transport_company transportCompany,
+      o.transport_no transportNo,
+      o.transport_addr transportAddr,
+      o.order_status orderStatus,
+      o.pay_date payDate
+    FROM t_auction_order o
+    WHERE o.goods_id = #{goodsId}
+        and o.status = 1
+  </select>
+
+    <update id="updateOrderStatusByOrderNo" parameterType="com.art.manager.request.AuctionOrderReq">
+    update t_auction_order
+    set order_status = #{orderStatus}
+    where id = #{id}
+    and status = 1
+  </update>
+
+    <!-- 在支付时间快结束时，且商品状态是竞拍成功和订单状态还是未支付，才允许运营人员延长2小时，若商品状态变为流拍、订单状态变为已失效，只能后台修改数据库状态 -->
+    <update id="delayExpireTime" parameterType="com.art.manager.request.AuctionOrderReq">
+        update t_auction_order o
+        inner join t_auction_goods g
+        on o.goods_id = g.id
+        set o.expire_date = date_add(#{dealDate}, interval 3 day),
+            o.deal_date = #{dealDate},
+            o.operator = #{username}
+        where g.goods_status = '3'
+        and o.order_status = '1'
+        and o.order_no = #{orderNo}
+        and o.status = 1
+        and g.status = 1
+    </update>
+
+    <select id="buyCount" resultType="java.lang.Integer">
+        select IFNULL(count(*),0) from t_auction_order where order_status not in ('0', '1', '') and status = 1 and buyer_name = #{buyerName}
+    </select>
+
+    <select id="unpaidCount" resultType="java.lang.Integer">
+        select IFNULL(count(*),0) from t_auction_order where order_status = 1 and status = 1 and buyer_name = #{buyerName}
+    </select>
+
+    <select id="orderNoList" resultType="java.lang.String">
+        select order_no from t_auction_order where order_status = 1 and status = 1 and buyer_name = #{buyerName}
+    </select>
+
+    <!-- 支付完成修改订单状态：未支付：1->代发货：2 -->
+    <update id="updateStatusByOrderNo" parameterType="com.art.manager.pojo.auction.AuctionOrder">
+        update t_auction_order
+        set order_status = '2',
+            payer_name = #{payerName},
+            pay_date = now()
+        where order_no = #{orderNo}
+        and order_status = '1'
+        and status = 1
+    </update>
+
+    <!-- 修改订单状态为 2、代发货->3、已发货 状态 -->
+    <update id="updateStatusToSendGoods" parameterType="com.art.manager.request.AuctionOrderReq">
+        UPDATE t_auction_order
+        SET order_status = '3',
+            deal_date = #{dealDate},
+            operator = #{username}
+        WHERE order_no = #{orderNo}
+         AND order_status = '2'
+         AND STATUS = 1;
+    </update>
+
+    <select id="getAuctionOrderList" resultType="com.art.manager.pojo.auction.AuctionOrder">
+        select  o.order_no orderNo,o.order_status orderStatus
+    FROM t_auction_order o where o.status != 0 and o.order_status != 0
+    </select>
+
+    <!-- 更新收货人信息 -->
+    <update id="updateReceiveInfo" parameterType="java.lang.Long">
+        update t_auction_order o
+        inner join t_auction_proxy_limit p on (o.buyer_name = p.username and o.goods_id = p.goods_id)
+        inner join t_receive_address r on p.addrId = r.id
+        set o.receive_addr= concat(r.cn_address,r.detailed_address),
+            o.receive_contact=r.receiver_name,
+            o.receive_phone = r.receiver_mobile
+        where o.id = #{id}
+        and o.`status` = 1
+    </update>
+
+    <!-- 更新收货人信息 -->
+    <update id="updateReceiveInfoByProcess" parameterType="java.lang.Long">
+        update t_auction_order o
+        inner join (select max(p.addrId) addrId from t_auction_process p, t_auction_order d where d.buyer_name = p.username and d.goods_id = p.goods_id and d.id = #{id} and d.`status` = 1) tmp
+        inner join t_receive_address r on tmp.addrId = r.id
+        set o.receive_addr= concat(r.cn_address,r.detailed_address),
+            o.receive_contact=r.receiver_name,
+            o.receive_phone = r.receiver_mobile
+        where o.id = #{id}
+        and o.`status` = 1
+    </update>
+
+    <select id="getOrderStatus" parameterType="java.lang.Long" resultType="com.art.manager.pojo.auction.AuctionOrder">
+        select  *
+    FROM t_auction_order  where goods_id = #{goodsId} and order_status != 0
+    </select>
+
+    <select id="getOrderMobile"  resultType="com.art.manager.pojo.auction.AuctionOrder">
+        select  *
+    FROM t_auction_order  where goods_id = #{goodsId} and buyer_name = #{mobile} and order_status != 0
+    </select>
+
+    <select id="getAuctionOrderMobileList" resultType="com.art.manager.pojo.auction.AuctionOrder">
+        select  *
+      FROM t_auction_order o where o.status != 0 and o.order_status != 0
+        <if test="mobile != null and mobile != ''">
+            and buyer_name = #{mobile}
+        </if>
+        <if test="type != null and type != ''">
+            and order_status = #{type}
+        </if>
+
+    </select>
+
+    <update id="updateAuctionOrderStatus" parameterType="java.lang.Long">
+         UPDATE t_auction_order
+        SET order_status = '4',
+            deal_date = #{dealDate},
+            operator = #{username}
+        WHERE order_no = #{orderNo}
+         AND goods_id = #{goodsId}
+         AND STATUS = 1;
+    </update>
+    <!-- 定时任务：查询所有待支付过期的订单 -->
+    <select id="selectAllExpiredOrder" resultType="com.art.manager.pojo.auction.AuctionOrder">
+        SELECT
+        id,
+        order_no orderNo,
+        goods_id goodsId,
+        goods_name goodsName,
+        buyer_name buyerName,
+        payer_name payerName,
+        deal_price dealPrice,
+        buyer_date buyerDate,
+        expire_date expireDate
+        FROM
+        t_auction_order
+        WHERE
+        expire_date &lt;= now()
+        AND order_status = 1
+        AND `status` = 1
+    </select>
+
+    <!-- 定时任务：批量修改已失效订单状态 -->
+    <update id="batchUpdateExpiredOrder" parameterType="java.util.List">
+        update t_auction_order
+        set order_status = 0
+        WHERE expire_date &lt;= now()
+        AND order_status = 1
+        AND `status` = 1
+        and goods_id in
+        <foreach collection ="ids" item="id" separator ="," open="(" close=")">
+            #{id}
+        </foreach >
+    </update>
+
+    <!-- 确认收货 -->
+    <update id="updateOrderToConfirmReceive" parameterType="java.lang.String">
+        update t_auction_order
+        set order_status = 4
+        WHERE order_no = #{orderNo}
+        AND order_status = 3
+        AND `status` = 1
+    </update>
+
+    <!-- 付款后15天自动确认收货-->
+    <update id="updateConfirmReceipt" >
+    UPDATE t_auction_order a
+      SET a.order_status = '4'
+    WHERE a.STATUS = 1
+     and a.order_status in ('2','3')
+     and a.pay_date is not null
+     and now() &gt;= DATE_ADD(a.pay_date,INTERVAL 15 day)
+  </update>
+
+</mapper>

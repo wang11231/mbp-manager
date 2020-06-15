@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.manager.mapper.config.CategoryConfigMapper">
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.art.manager.pojo.config.CategoryConfig">
+    insert into t_category_config(`name`, parent_id) values
+    (#{name},#{parentId})
+  </insert>
+
+  <update id="deleteById" parameterType="com.art.manager.pojo.config.CategoryConfig">
+    update t_category_config
+    set status = 0
+    where (id = #{id} or parent_id = #{id})
+    and status = 1
+  </update>
+
+  <update id="updateNameById" parameterType="com.art.manager.pojo.config.CategoryConfig">
+    update t_category_config
+    set name = #{name}
+    where id = #{id}
+    and status = 1
+  </update>
+
+  <select id="getList" parameterType="com.art.manager.pojo.config.CategoryConfig" resultType="com.art.manager.pojo.config.CategoryConfig">
+    select id,`name`,parent_id parentId, status, create_time createTime, update_time updateTime
+    from t_category_config
+    where status = 1
+    <if test="id != null">
+      and id = #{id}
+    </if>
+    <if test="name != null and name != ''">
+      and `name` = #{name}
+    </if>
+    <if test="parentId != null">
+      and parent_id = #{parentId}
+    </if>
+    <if test="flag != null">
+      and parent_id is null
+    </if>
+    order by id
+  </select>
+
+  <select id="getTypaName" resultType="java.lang.String">
+    select tc.name typeName from t_category_config tc
+    where tc.id = #{typeCode}
+  </select>
+
+  <select id="getStyleName" resultType="java.lang.String">
+    select name from t_category_config tc
+    where tc.id = #{styleCode}
+  </select>
+
+  <select id="getStyleList" resultType="com.art.manager.dto.CategoryConfigDto">
+    select DISTINCT `name`  FROM t_category_config where parent_id > 0 and status =1
+  </select>
+
+  <select id="selectById" resultType="com.art.manager.pojo.config.CategoryConfig">
+    select * from t_category_config where name = #{name}
+  </select>
+
+  <select id="selectId" resultType="java.lang.Long">
+    select id from t_category_config where name = #{name}
+  </select>
+
+</mapper>

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.art.manager.mapper.OrderMapper">
+    <resultMap id="BaseResultMap" type="com.art.manager.pojo.Order">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="order_no" property="orderNo" jdbcType="VARCHAR"/>
+        <result column="commodity_name" property="commodityName" jdbcType="VARCHAR"/>
+        <result column="deal_price" property="dealPrice" jdbcType="DECIMAL"/>
+        <result column="artist" property="artist" jdbcType="VARCHAR"/>
+        <result column="account_number" property="accountNumber" jdbcType="VARCHAR"/>
+        <result column="drawee_number" property="draweeNumber" jdbcType="VARCHAR"/>
+        <result column="type_name" property="typeName" jdbcType="VARCHAR"/>
+        <result column="style_name" property="styleName" jdbcType="VARCHAR"/>
+        <result column="logistics_no" property="logisticsNo" jdbcType="VARCHAR"/>
+        <result column="logistics_address" property="logisticsAddress" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="order_time" property="orderTime" jdbcType="TIMESTAMP"/>
+        <result column="deal_Time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+      id, order_no, commodity_name, artist, account_number,drawee_number,type_name,style_name, logistics_no, logistics_address,
+      status,order_time,deal_price, special_field, deal_Time,operator, create_time, update_time,transport_addr, logistics_company,detailed_address,cn_address,receiver_mobile,receiver_name
+  </sql>
+
+    <select id="selectOrderList" parameterType="com.art.manager.request.OrderReq" resultType="com.art.manager.vo.OrderVo">
+        select
+        t.id, t.order_no, t.commodity_name, t.account_number,t.drawee_number,t.type_name,t.style_name,t.status,
+        t.order_time,t.deal_price,t.deal_Time,t.operator, t.logistics_address, t.receiver_mobile, t.receiver_name, tc.freight,t.logistics_company,t.del_flag,tc.good_id
+        from t_order t
+        left join t_common_commodity tc on t.commodity_name = tc.commdity_name
+        where 1=1
+        <if test="orderNo != null and orderNo != ''">
+            and t.order_no like CONCAT('%',#{orderNo},'%')
+        </if>
+         <if test="accountNumber != null and accountNumber != ''">
+            and t.account_number like CONCAT('%',#{accountNumber},'%')
+        </if>
+         <if test="status != null">
+            and t.status = #{status}
+        </if>
+        <if test="typeName != null and typeName != ''">
+            and t.type_name like CONCAT('%',#{typeName},'%')
+        </if>
+        <if test="styleName != null and styleName != ''">
+            and t.style_name like CONCAT('%',#{styleName},'%')
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND  t.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND  t.create_time &lt; DATE_ADD(#{endTime},INTERVAL 1 DAY)
+        </if>
+        order by t.id desc
+    </select>
+
+    <select id="selectOrderInfo" resultType="com.art.manager.pojo.Order">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order
+        where order_no = #{orderNo}
+    </select>
+
+    <update id="updateLogisticsById" parameterType="java.util.Map">
+        update t_order
+        set logistics_no = #{logisticsNo}, transport_addr = #{transportAddr},
+        operator = #{operator}, logistics_company = #{logisticsCompany}, status = 3
+        where order_no = #{orderNo}
+    </update>
+
+    <update id="updateStatusById" parameterType="java.util.Map">
+        update t_order
+        set status = #{status},operator = #{operator}
+        where order_no = #{orderNo}
+    </update>
+    
+    <select id="buyCount" resultType="java.lang.Integer">
+        select count(*) from t_order where status !=0 and account_number = #{accountNumber} and del_flag = 0
+    </select>
+
+    <select id="unpaidCount" resultType="java.lang.Integer">
+        select count(*) from t_order where status =0 and account_number = #{accountNumber} and del_flag = 0
+    </select>
+
+    <select id="orderNoList" resultType="java.lang.String">
+        select order_no from t_order where status = 0 and account_number = #{accountNumber} and del_flag = 0
+    </select>
+
+    <update id="updateStatusByOrderNo" parameterType="com.art.manager.pojo.Order">
+        update t_order
+        set status = #{status},
+        update_time = #{updateTime},
+        drawee_number = #{draweeNumber},
+        deal_Time = #{dealTime}
+        where order_no = #{orderNo}
+    </update>
+
+
+    <insert id="inserPtOrderNo" parameterType="com.art.manager.pojo.Order" >
+        insert into t_order(order_no,commodity_name,deal_price,artist,account_number,drawee_number,
+        type_name,style_name,logistics_no,logistics_address,special_field,detailed_address,receiver_mobile,receiver_name,status,order_time,deal_Time,create_time,update_time,cn_address)VALUES (#{orderNo},#{commodityName},
+        #{dealPrice},#{artist},#{accountNumber},#{draweeNumber},#{typeName},#{styleName},#{logisticsNo},#{logisticsAddress},
+         #{specialField},#{detailedAddress},#{receiverMobile},#{receiverName},#{status},#{orderTime},#{dealTime},#{createTime},#{updateTime},#{cnAddress}
+        )
+
+    </insert>
+    <select id="getOrderNum" resultType="com.art.manager.pojo.Order">
+        select
+        <include refid="Base_Column_List"/>
+         from t_order where account_number = #{mobile} and del_flag = 0
+    </select>
+
+    <select id="getOrder" resultType="com.art.manager.pojo.Order">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order
+        where commodity_name = #{commodityName} and status != 0 and del_flag = 0
+    </select>
+
+    <select id="getOrderNo" resultType="com.art.manager.pojo.Order">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order
+        where commodity_name = #{commodityName} and account_number = #{mobile} and del_flag = 0
+    </select>
+
+    <select id="getOrderDealPrice" resultType="com.art.manager.pojo.Order">
+        select
+        deal_price,special_field
+        from t_order
+        where order_no = #{orderNo}
+    </select>
+
+    <select id="wechatOrderList" resultType="com.art.manager.vo.WechatOrderVo" parameterType="com.art.manager.request.OrderReq">
+        select t.id,t.order_no,t.commodity_name,t.artist,t.deal_price,tc.show_picture, tc.core_specification, tc.creation_year, t.status, tc.marke_price,t.logistics_company, t.transport_addr,tc.id commodityId,t.logistics_company logisticsCompany,logistics_no logisticsNo
+        from t_order t
+        left join t_common_commodity tc on t.commodity_name = tc.commdity_name
+        where account_number = #{mobile}
+        and t.del_flag = 0
+        <if test="status != null">
+            and t.status = #{status}
+        </if>
+        order by t.deal_Time desc
+    </select>
+    <update id="delOrder" parameterType="java.lang.String">
+        update t_order set del_flag = 1 where order_no = #{orderNo}
+    </update>
+
+    <update id="updateOrderStatus" parameterType="java.lang.String">
+        update t_order set status = 4 where order_no = #{orderNo}
+    </update>
+
+    <select id="getBuyOrder" parameterType="java.lang.String" resultType="com.art.manager.pojo.Order">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order
+        where order_no = #{orderNo} and drawee_number = #{mobile}
+    </select>
+
+    <!-- 付款后15天自动确认收货-->
+    <update id="updateConfirmReceipt" >
+    UPDATE t_order a
+      SET a.status = '4'
+    WHERE a.status in ('1','2','3')
+     and a.deal_Time is not null
+     and now() &gt;= DATE_ADD(a.deal_Time,INTERVAL 15 day)
+  </update>
+</mapper>

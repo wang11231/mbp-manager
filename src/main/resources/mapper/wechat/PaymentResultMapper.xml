@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.art.manager.mapper.wechat.PaymentResultMapper">
+
+    <sql id="Base_Column_List">
+      id, mobile, return_code returnCode, return_msg returnMsg, mch_id mchI, result_code resultCode, err_code errCode,err_code_des errCodeDes,out_trade_no outTradeNo,prepay_id prepayId, total_fee totalFee, transaction_id transactionId,create_time createTime,update_time updateTime,status, payment_type paymentType, out_refund_no outRefundNo, refund_id refundId, refund_status refundStatus, payment_no paymentNo
+    </sql>
+
+    <insert id="savePaymentResult" parameterType="com.art.manager.pojo.wechat.PaymentResult">
+        insert into t_payment_result
+        (return_code, return_msg, mch_id, result_code, err_code, err_code_des, prepay_id,out_trade_no,mobile,total_fee,payment_type,transaction_id, order_no, out_refund_no, refund_id, refund_status, payment_no) values
+        (#{returnCode}, #{returnMsg}, #{mchId},#{resultCode},#{errCode},#{errCodeDes},#{prepayId},#{outTradeNo},#{mobile},#{totalFee},#{paymentType},#{transactionId}, #{orderNo}, #{outRefundNo}, #{refundId}, #{refundStatus}, #{paymentNo})
+    </insert>
+
+    <insert id="insertByBaseAmount" parameterType="com.art.manager.pojo.auction.AuctionBaseAmount">
+        insert into t_payment_result
+        (return_code, return_msg, mch_id, result_code, err_code, err_code_des, prepay_id,out_trade_no,mobile,total_fee,payment_type,transaction_id)
+        select 'SUCCESS', '退还保证金成功', username,'SUCCESS','','','',username,username,base_amount,22,#{goodsId}
+        from t_auction_base_amount
+        where goods_id = #{goodsId}
+        <if test="username != null and username != ''">
+            and username = #{username}
+        </if>
+        and base_amount_status = 1
+        and status = 1
+    </insert>
+
+    <update id="updatePaymentResult" parameterType="java.util.Map">
+        update t_payment_result
+        set
+        return_code = #{returnCode},
+        return_msg = #{returnMsg},
+        total_fee = #{totalFee},
+        transaction_id = #{transactionId},
+        where out_trade_no = #{outTradeNo}
+    </update>
+
+    <select id="selectPayResult" parameterType="com.art.manager.request.PaymentResultReq" resultType="com.art.manager.pojo.wechat.PaymentResult">
+        select
+        <include refid="Base_Column_List" />
+        from t_payment_result
+        where 1=1
+        <if test="paymentTypes != null">
+            and payment_type IN
+            <foreach collection ="paymentTypes" item="paymentType" separator ="," open="(" close=")">
+                #{paymentType}
+            </foreach>
+        </if>
+        <if test="mobile != null and mobile != ''">
+            and mobile = #{mobile}
+        </if>
+        <if test="outTradeNo != null and outTradeNo != ''">
+            and out_trade_no = #{outTradeNo}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND  create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND  create_time &lt; DATE_ADD(#{endTime},INTERVAL 1 DAY)
+        </if>
+         order by id desc
+    </select>
+
+    <select id="selectPayResultByOrderNo" parameterType="String" resultType="com.art.manager.pojo.wechat.PaymentResult">
+        select transactionId, outTradeNo
+        from t_payment_result where order_no = #{orderNo}
+    </select>
+
+    <select id="selectPayResultByTransactionId" parameterType="String" resultType="com.art.manager.pojo.wechat.PaymentResult">
+        select
+        <include refid="Base_Column_List" />
+        from t_payment_result
+        where transaction_id = #{transactionId}
+    </select>
+
+    <update id="updatePaymentResultByTransactionId">
+        update t_payment_result
+        set refund_status = #{refundStatus}
+        where transaction_id = #{transactionId}
+    </update>
+
+</mapper>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.art.manager.mapper.wechat.ReceiveAddressMapper">
+    <resultMap id="BaseResultMap" type="com.art.manager.pojo.wechat.ReceiveAddress">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="receiver_name" property="receiverName" jdbcType="VARCHAR"/>
+        <result column="receiver_mobile" property="receiverMobile" jdbcType="VARCHAR"/>
+        <result column="province" property="province" jdbcType="VARCHAR"/>
+        <result column="city" property="city" jdbcType="VARCHAR"/>
+        <result column="county" property="county" jdbcType="VARCHAR"/>
+        <result column="street" property="street" jdbcType="VARCHAR"/>
+        <result column="detailed_address" property="detailedAddress" jdbcType="VARCHAR"/>
+        <result column="lable" property="lable" jdbcType="VARCHAR"/>
+        <result column="mobile" property="mobile" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+      id, user_id, receiver_name, receiver_mobile, province, city, county,street,detailed_address,lable, status,cn_address, create_time,update_time
+  </sql>
+
+    <insert id="insert" parameterType="com.art.manager.pojo.wechat.ReceiveAddress">
+        insert into t_receive_address (receiver_name, receiver_mobile, province, city, county, street,
+                    detailed_address, lable,mobile,cn_address,status, create_time, update_time) values
+                    (#{receiverName},#{receiverMobile},#{province},#{city},#{county},#{street},
+                    #{detailedAddress},#{lable},#{mobile},#{cnAddress},#{status},#{createTime},#{updateTime})
+    </insert>
+
+    <update id="update" parameterType="com.art.manager.pojo.wechat.ReceiveAddress">
+        update t_receive_address
+        <set>
+            <if test="userId != null and userId != ''" >
+                `user_id` = #{userId},
+            </if>
+            <if test="receiverName != null and receiverName != ''" >
+                receiver_name = #{receiverName},
+            </if>
+            <if test="receiverMobile != null and receiverMobile != ''" >
+                receiver_mobile = #{receiverMobile},
+            </if>
+            <if test="province != null and province != ''" >
+                province = #{province},
+            </if>
+            <if test="city != null and city != ''" >
+                city = #{city},
+            </if>
+            <if test="county != null and county != ''" >
+                county = #{county},
+            </if>
+            <if test="street != null and street != ''" >
+                street = #{street},
+            </if>
+            <if test="detailedAddress != null and detailedAddress != ''" >
+                detailed_address = #{detailedAddress},
+            </if>
+            <if test="lable != null and lable != ''" >
+                lable = #{lable},
+            </if>
+            <if test="cnAddress != null" >
+                cn_address = #{cnAddress},
+            </if>
+            <if test="status != null" >
+                status = #{status},
+            </if>
+            <if test="createTime != null" >
+                `create_time` = #{createTime},
+            </if>
+            <if test="updateTime != null" >
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="delete" parameterType="com.art.manager.request.ReceiveAddressReq">
+        update t_receive_address set
+        del_flag = 0,
+        update_time = #{updateTime}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateStatus" parameterType="com.art.manager.request.ReceiveAddressReq">
+        update t_receive_address set
+        status = #{status},
+        update_time = #{updateTime}
+        where id = #{id}
+    </update>
+
+    <select id="getAddressList" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from t_receive_address
+        where del_flag = 1
+        <if test="mobile != null and mobile != ''" >
+            and mobile = #{mobile}
+        </if>
+        <if test="id != null" >
+            and id = #{id}
+        </if>
+         order by status desc, create_time desc
+    </select>
+
+    <update id="updateStatusByStatus">
+        update t_receive_address set
+        status = #{status},
+        update_time = #{updateTime}
+        where status = 1
+    </update>
+
+    <select id="selectAddress" resultType="com.art.manager.pojo.wechat.ReceiveAddress">
+        select
+        <include refid="Base_Column_List" />
+        from t_receive_address
+        where del_flag = 1 order by id desc limit 1
+    </select>
+
+    <select id="selectById" parameterType="com.art.manager.pojo.wechat.ReceiveAddress" resultType="com.art.manager.pojo.wechat.ReceiveAddress">
+        select
+        <include refid="Base_Column_List" />
+        from t_receive_address
+        where del_flag = 1
+        and id = #{id}
+    </select>
+
+</mapper>

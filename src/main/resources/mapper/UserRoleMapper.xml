@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.manager.mapper.UserRoleMapper">
+  <resultMap id="BaseResultMap" type="com.art.manager.pojo.UserRole">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="role_id" jdbcType="INTEGER" property="roleId" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, user_id, role_id, status, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.art.manager.pojo.UserRoleExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from t_user_role
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_user_role
+    where id = #{id}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_user_role
+    where id = #{id}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.art.manager.pojo.UserRoleExample">
+    delete from t_user_role
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.art.manager.pojo.UserRole">
+    insert into t_user_role (id, user_id, role_id, 
+      status, create_time, update_time
+      )
+    values (#{id}, #{userId}, #{roleId},
+      #{status}, #{createTime}, #{updateTime}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.art.manager.pojo.UserRole">
+    insert into t_user_role
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="roleId != null">
+        role_id,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id},
+      </if>
+      <if test="userId != null">
+        #{userId},
+      </if>
+      <if test="roleId != null">
+        #{roleId},
+      </if>
+      <if test="status != null">
+        #{status},
+      </if>
+      <if test="createTime != null">
+        #{createTime},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.art.manager.pojo.UserRoleExample" resultType="java.lang.Integer">
+    select count(*) from t_user_role
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update t_user_role
+    <set>
+      <if test="record.id != null">
+        id = #{record.id},
+      </if>
+      <if test="record.userId != null">
+        user_id = #{record.userId},
+      </if>
+      <if test="record.roleId != null">
+        role_id = #{record.roleId},
+      </if>
+      <if test="record.status != null">
+        status = #{record.status},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update t_user_role
+    set id = #{record.id},
+      user_id = #{record.userId},
+      role_id = #{record.roleId},
+      status = #{record.status},
+      create_time = #{record.createTime},
+      update_time = #{record.updateTime}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.art.manager.pojo.UserRole">
+    update t_user_role
+    <set>
+      <if test="id != null">
+        id = #{id},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId},
+      </if>
+      <if test="roleId != null">
+        role_id = #{roleId},
+      </if>
+      <if test="status != null">
+        status = #{status},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime},
+      </if>
+    </set>
+    where id = #{id}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.art.manager.pojo.UserRole">
+    update t_user_role
+    set user_id = #{userId},
+      role_id = #{roleId},
+      status = #{status},
+      create_time = #{createTime},
+      update_time = #{updateTime}
+    where id = #{id}
+  </update>
+
+  <!-- 批量插入用户角色 -->
+  <insert id="batchInsertRoles" parameterType="java.util.List">
+  insert into t_user_role(user_id, role_id) values
+     <foreach collection ="list" item="role" index= "index" separator =",">
+         (#{role.userId}, #{role.roleId})
+     </foreach >
+  </insert>
+
+  <!-- 删除指定用户角色 -->
+  <insert id="deleteRolesByUser" parameterType="com.art.manager.pojo.UserRole">
+    update t_user_role set status = #{status} where user_id = #{userId} and status = 1
+  </insert>
+
+  <select id="selectRolesByList" parameterType="java.util.List" resultType="com.art.manager.pojo.UserRole">
+    select u.id, u.user_id userId, u.role_id roleId, r.role_name roleName, r.role_desc roleDesc, u.status
+    from t_user_role u, t_sys_role r
+    where u.role_id = r.id
+    and u.status = 1
+    and r.status = 1
+    and u.user_id in
+    <foreach collection ="list" item="user" index= "index" separator ="," open="(" close=")">
+      #{user.id}
+    </foreach >
+  </select>
+
+  <select id="selectMenuByUser" parameterType="com.art.manager.pojo.UserRole" resultType="com.art.manager.pojo.SysMenu">
+    SELECT DISTINCT
+        m.id,
+        m.seq,
+        m.menu_class,
+        m.menu_name,
+        m.menu_url,
+        m.parent_id,
+        m.`status`
+    FROM
+        t_sys_role r,
+        t_user_role ur,
+        t_role_menu rm,
+        t_sys_menu m
+    WHERE r.id = ur.role_id
+    AND ur.role_id = rm.role_id
+    AND rm.menu_id = m.id
+    AND r.`status` = 1
+    AND ur.`status` = 1
+    AND rm.`status` = 1
+    AND m.`status` = 1
+    AND ur.user_id = #{userId}
+    ORDER BY m.id
+  </select>
+
+</mapper>

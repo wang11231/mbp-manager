@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.art.manager.mapper.SpecialMapper">
+    <resultMap id="BaseResultMap" type="com.art.manager.pojo.SpecialType">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="getList" parameterType="java.util.Map" resultType="com.art.manager.vo.SpecialVo">
+        select
+        id, name, operator,title, create_time, update_time
+        from t_special_type
+        where status = 0
+        <if test="name != null and name != ''">
+            and name like CONCAT('%',#{name},'%')
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND  create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND  create_time &lt; DATE_ADD(#{endTime},INTERVAL 1 DAY)
+        </if>
+        order by id
+    </select>
+
+
+    <select id="getSpecialList" resultType="com.art.manager.vo.SpecialAndTypeVo">
+       SELECT
+        tc.id,
+        tc.type_id,
+        t.name,
+        tc.operator,
+        tc.special_name,
+        tc.create_time,
+        tc.update_time
+    FROM
+        t_special tc
+        left join t_special_type t
+        on tc.type_id = t.id
+        where tc.type_id = #{typeId} and tc.status = 0
+
+    </select>
+
+    <insert id="insertSpecialType" parameterType="com.art.manager.pojo.SpecialType">
+        insert into t_special_type (name, operator,title, create_time, update_time)
+        values (#{name}, #{operator},#{title}, #{createTime},  #{updateTime})
+    </insert>
+
+    <insert id="insertSpecial" parameterType="com.art.manager.pojo.Special">
+        insert into t_special (type_id, special_name, special, operator, create_time, update_time)
+        values (#{typeId}, #{specialName}, #{special}, #{operator}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="remove" parameterType="java.lang.Long">
+        update t_common_commodity
+        set status = 1, special_id = 0
+        where id = #{id}
+    </update>
+
+    <select id="getSpecialName" resultType="java.lang.String">
+        select special_name from t_special where id = #{id}
+    </select>
+
+    <update id="updateSpecialType" parameterType="com.art.manager.pojo.SpecialType">
+        update t_special_type set name = #{name}, operator = #{operator}, title = #{title} , update_time = #{updateTime} where id = #{id}
+    </update>
+
+    <update id="updateSpecial" parameterType="com.art.manager.pojo.Special">
+        update t_special
+        set special_name = #{specialName},
+        special = #{special},
+        operator = #{operator},
+        update_time = #{updateTime}
+        where id = #{id}
+    </update>
+
+    <update id="deleteSpecialTypeByIds" parameterType="java.util.List">
+        update t_special_type
+        set status = 1
+        where id in
+        <foreach collection ="list" item="id" separator ="," open="(" close=")">
+            #{id}
+        </foreach >
+        and status = 0
+    </update>
+
+    <select id="selectSpecialById" resultType="java.lang.Long">
+        select id from t_special
+        where type_id in
+        <foreach collection ="list" item="id" separator ="," open="(" close=")">
+            #{id}
+        </foreach >
+        and status = 0
+    </select>
+
+    <update id="deleteSpecialByIds" parameterType="java.util.List">
+        update t_special
+        set status = 1
+        where id in
+        <foreach collection ="list" item="id" separator ="," open="(" close=")">
+            #{id}
+        </foreach >
+        and status = 0
+    </update>
+
+    <select id="selectSpecial" resultType="com.art.manager.dto.SpecialDto">
+        select id, special_name from t_special where status = 0
+    </select>
+
+    <select id="getSpecialById" resultType="com.art.manager.pojo.Special">
+        select * from t_special where id = #{id} and status = 0
+    </select>
+
+    <select id="getTencentSpecialList" resultType="com.art.manager.pojo.SpecialType">
+        select * from t_special_type where status = 0
+    </select>
+
+
+    <select id="specialCommonList" parameterType="java.lang.Integer" resultType="com.art.manager.pojo.Special">
+        select * from t_special where type_id = #{id} and status = 0;
+    </select>
+</mapper>

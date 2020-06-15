@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.manager.mapper.auction.AuctionBaseAmountMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.art.manager.pojo.auction.AuctionBaseAmount">
+    insert into t_auction_base_amount
+    (`user_id`,
+    `username`,
+    `goods_id`,
+    `base_amount`,
+    pay_type
+    )
+    values
+    (#{userId},
+    #{username},
+    #{goodsId},
+    #{baseAmount},
+    #{payType})
+  </insert>
+
+    <select id="selectByUserAndGoodId" parameterType="com.art.manager.pojo.auction.AuctionBaseAmount" resultType="com.art.manager.pojo.auction.AuctionBaseAmount">
+    SELECT
+        id,
+        user_id userId,
+        username,
+        goods_id goodsId,
+        base_amount baseAmount,
+        status,
+        create_time createTime,
+        update_time updateTime
+    FROM t_auction_base_amount
+    WHERE username = #{username}
+        and goods_id = #{goodsId}
+        <!-- 冻结保证金 -->
+        and base_amount_status = 1
+        and status = '1'
+  </select>
+
+    <select id="selectByUserAndGoodIdWithoutBaseAmountStatus" parameterType="com.art.manager.pojo.auction.AuctionBaseAmount" resultType="com.art.manager.pojo.auction.AuctionBaseAmount">
+        SELECT
+        id,
+        user_id userId,
+        username,
+        goods_id goodsId,
+        base_amount baseAmount,
+        status,
+        create_time createTime,
+        update_time updateTime
+        FROM t_auction_base_amount
+        WHERE username = #{username}
+        and goods_id = #{goodsId}
+        and status = '1'
+    </select>
+
+    <select id="getAuctionStartPriceList" parameterType="java.lang.String" resultType="com.art.manager.pojo.auction.AuctionBaseAmount">
+    SELECT
+        id,
+        user_id userId,
+        username,
+        goods_id goodsId,
+        base_amount baseAmount,
+        status,
+        create_time createTime,
+        update_time updateTime
+    FROM t_auction_base_amount
+    WHERE username = #{mobile}
+        and status = 1
+        and base_amount_status = 1
+  </select>
+
+    <!-- 根据用户和商品更新保证金信息 -->
+    <update id="updateBaseAmountByUserAndGoodId" parameterType="com.art.manager.pojo.auction.AuctionBaseAmount">
+        update t_auction_base_amount
+         set base_amount_status = #{baseAmountStatus},
+             base_amount = #{baseAmount},
+             pay_type = #{payType}
+        WHERE username = #{username}
+         and goods_id = #{goodsId}
+         and status = '1'
+    </update>
+
+    <!-- 商品流拍或订单支付成功，修改保证金状态：冻结1->解冻0 -->
+    <update id="updateBoneStatus" parameterType="com.art.manager.pojo.auction.AuctionBaseAmount">
+        update t_auction_base_amount
+        set
+        base_amount_status = #{baseAmountStatus},
+        update_time = #{updateTime}
+        where goods_id = #{goodsId}
+        <if test="username != null and username != ''">
+            and username = #{username}
+        </if>
+        and base_amount_status = 1
+        and status = 1
+    </update>
+
+    <!-- 生成订单，除拍成功者外，其他参拍者保证金状态：冻结1->解冻0 -->
+    <update id="updateBoneStatusWithoutSuccess" parameterType="com.art.manager.pojo.auction.AuctionBaseAmount">
+        update t_auction_base_amount
+        set
+        base_amount_status = 0
+        where goods_id = #{goodsId}
+        and username != #{username}
+        and base_amount_status = 1
+        and status = 1
+    </update>
+
+    <!-- 定时任务：修改保证金状态：冻结1->扣除2 -->
+    <update id="updateBaseAmountStatusToDeduct" parameterType="java.util.Map">
+        update t_auction_base_amount
+        set base_amount_status = 2
+        where username = #{username}
+        and goods_id in
+        <foreach collection ="goodsIds" item="id" separator ="," open="(" close=")">
+            #{id}
+        </foreach >
+        and base_amount_status = 1
+        and status = 1
+    </update>
+
+    <select id="getBone" parameterType="com.art.manager.pojo.auction.AuctionBaseAmount" resultType="com.art.manager.pojo.auction.AuctionBaseAmount">
+        select base_amount from t_auction_base_amount where goods_id = #{goodsId} and username = #{username} and status = 1 limit 1
+    </select>
+
+    <select id="getUserBaseAmountList" parameterType="com.art.manager.pojo.auction.AuctionUserBaseAmount" resultType="com.art.manager.pojo.auction.AuctionUserBaseAmount">
+        SELECT
+            u.bond,
+            a.id goodsId,
+            a.goods_name goodsName,
+            a.show_pic showPic,
+            b.base_amount baseAmount,
+            b.create_time createTime,
+            b.base_amount_status baseAmountStatus,
+            b.username
+        FROM
+            t_auction_base_amount b,
+            t_wechat_user u,
+            t_auction_goods a
+        WHERE b.username = u.mobile
+        AND b.goods_id = a.id
+        AND b.username = #{username}
+        and a.reset_status = 1
+        AND a.goods_status IN
+            <foreach collection ="goodsStatuses" item="sta" separator ="," open="(" close=")">
+              #{sta}
+            </foreach>
+        AND a.`status` = 1
+        AND b.create_time &lt;= now()
+        AND b.create_time &gt;= date_add(now(), INTERVAL -1 MONTH)
+        <if test="baseAmountStatus != null and baseAmountStatus != ''">
+            AND b.base_amount_status = #{baseAmountStatus}
+        </if>
+        AND b.`status` = 1
+        order by a.create_time desc
+    </select>
+
+</mapper>

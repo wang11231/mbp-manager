@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.manager.mapper.auction.AuctionProxyLimitMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.art.manager.pojo.auction.AuctionProxyLimit">
+    insert into t_auction_proxy_limit
+    (`user_id`,
+    `username`,
+    `goods_id`,
+    `price_limit`,
+    `start_date`,
+    `end_date`,
+    `proxy_status`,
+    `addrId`
+    )
+    select
+    #{userId},
+    #{username},
+    id,
+    #{priceLimit},
+    start_date,
+    end_date,
+    '1',
+    #{addrId}
+    from t_auction_goods
+    where id = #{goodsId}
+  </insert>
+
+    <update id="updateProxyLimitByUserAndGoodId" parameterType="com.art.manager.pojo.auction.AuctionProxyLimit">
+      update t_auction_proxy_limit
+        <set >
+            <if test="priceLimit != null" >
+                price_limit = #{priceLimit},
+            </if>
+            <if test="addrId != null" >
+                addrId = #{addrId},
+            </if>
+        </set>
+       where username = #{username}
+        and goods_id = #{goodsId}
+        <!-- and start_date &lt;= #{currentTime}-->
+        <!-- and proxy_status = '1'-->
+        and status = '1'
+</update>
+
+<!-- 查询最新的代理价格，无论是否有效 -->
+    <select id="selectOneByUserAndGoodId" parameterType="com.art.manager.pojo.auction.AuctionProxyLimit" resultType="com.art.manager.pojo.auction.AuctionProxyLimit">
+    SELECT
+        id,
+        user_id userId,
+        username,
+        goods_id goodsId,
+        price_limit priceLimit,
+        start_date startDate,
+        end_date endDate,
+        proxy_status proxyStatus,
+        status,
+        create_time createTime,
+        update_time updateTime
+    FROM t_auction_proxy_limit
+    WHERE username = #{username}
+        and goods_id = #{goodsId}
+        <!-- and proxy_status = '1' -->
+        and status = '1'
+        order by update_time desc, id desc
+        limit 1
+  </select>
+
+    <select id="selectProxyStatusValidById" parameterType="java.util.Map" resultType="com.art.manager.pojo.auction.AuctionProxyLimit">
+    SELECT
+        id,
+        user_id userId,
+        username,
+        goods_id goodsId,
+        price_limit priceLimit,
+        start_date startDate,
+        end_date endDate,
+        proxy_status proxyStatus,
+        status,
+        addrId,
+        create_time createTime,
+        update_time updateTime
+    FROM t_auction_proxy_limit
+    WHERE start_date &lt;= #{currentTime}
+    and end_date &gt; #{currentTime}
+    and goods_id = #{goodsId}
+    and proxy_status = '1'
+    and status = '1'
+  </select>
+
+    <select id="selectProxyStatusValid" parameterType="com.art.manager.pojo.auction.AuctionProxyLimit" resultType="com.art.manager.pojo.auction.AuctionProxyLimit">
+    SELECT
+        a.id,
+        a.user_id userId,
+        a.username,
+        a.goods_id goodsId,
+        a.price_limit priceLimit,
+        a.start_date startDate,
+        a.end_date endDate,
+        a.proxy_status proxyStatus,
+        a.status,
+        a.create_time createTime,
+        a.update_time updateTime
+    FROM t_auction_proxy_limit a
+    inner join t_auction_goods b
+    on a.goods_id = b.id
+    WHERE a.start_date &lt;= #{currentTime}
+    and a.end_date &gt; #{currentTime}
+    <if test="goodsId != null">
+        and a.goods_id = #{goodsId}
+    </if>
+    and a.proxy_status = '1'
+    and b.auto_proxy = 1
+    and a.status = '1'
+  </select>
+
+    <select id="selectOneProxylimitByGoondId" parameterType="com.art.manager.pojo.auction.AuctionProxyLimit" resultType="com.art.manager.pojo.auction.AuctionProxyLimit">
+        SELECT
+        id,
+        user_id userId,
+        username,
+        goods_id goodsId,
+        price_limit priceLimit,
+        start_date startDate,
+        end_date endDate,
+        proxy_status proxyStatus,
+        status,
+        create_time createTime,
+        update_time updateTime,
+        addrId
+        FROM t_auction_proxy_limit
+        WHERE goods_id = #{goodsId}
+        and proxy_status = '1'
+        and status = '1'
+        limit 1
+    </select>
+
+
+  <!-- 定时任务：批量修改代理状态为无效-->
+    <update id="batchUpdateProxyStatus" parameterType="java.util.List">
+        update t_auction_proxy_limit
+          set  proxy_status = '0'
+        where id in
+        <foreach collection ="list" item="proxy" separator ="," open="(" close=")">
+            #{proxy.id}
+        </foreach >
+        and proxy_status = '1'
+        and status = 1
+    </update>
+
+    <!-- 代理出价：批量修改代理状态-->
+    <update id="batchUpdateProxyStatusToValid" parameterType="com.art.manager.pojo.auction.AuctionProxyLimit">
+        update t_auction_proxy_limit p
+        inner join (select a.id id from t_auction_proxy_limit a where a.`status` = 1 and a.goods_id = #{goodsId} and username = #{username}) tmp
+        set p.proxy_status = (case when p.id = tmp.id then 1 else 0 end)
+        where p.`status` = 1
+        and p.goods_id = #{goodsId}
+    </update>
+
+    <!-- 代理出价、自动出价：延长拍品的结束时间-->
+    <update id="delayEndDateByGoodsId" parameterType="com.art.manager.pojo.auction.AuctionProxyLimit">
+        update t_auction_proxy_limit
+        set  end_date = #{nextEndDate}
+        where goods_id = #{goodsId}
+        and status = 1
+    </update>
+
+    <!-- 商品在流拍和拍卖中修改商品的开始时间和结束时间-->
+    <update id="updateProxyLimitStartAndEndDate" parameterType="com.art.manager.pojo.auction.AuctionProxyLimit">
+        update t_auction_proxy_limit
+        <set >
+            <if test="startDate != null and startDate != ''" >
+                start_date = #{startDate},
+            </if>
+            <if test="endDate != null and endDate != ''" >
+                end_date = #{endDate},
+            </if>
+        </set>
+        where goods_id = #{goodsId}
+        and status = 1
+    </update>
+
+</mapper>

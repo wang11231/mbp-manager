@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.manager.mapper.auction.AuctionGoodsMapper">
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.art.manager.pojo.auction.AuctionGoods">
+    insert into t_auction_goods
+    (`goods_name`,
+    `start_price`,
+    `base_amount`,
+    `increment_step`,
+    `one_price`,
+    `category_id`,
+    `artist_id`,
+    `create_year`,
+    `subject`,
+    `specification`,
+    `transport_amount`,
+    `user_id`,
+    `username`,
+    `use_scene`,
+    `introduction`,
+    `show_pic`,
+    `start_date`,
+    `end_date`,
+    goods_status_remark,
+    auction_goods_id,
+    interest_count
+    )
+    values
+    (#{goodsName},
+    #{startPrice},
+    #{baseAmount},
+    #{incrementStep},
+    #{onePrice},
+    #{styleCode},
+    #{artistId},
+    #{createYear},
+    #{subject},
+    #{specification},
+    #{transportAmount},
+    #{userId},
+    #{username},
+    #{useScene},
+    #{introduction},
+    #{showPic},
+    #{startDate},
+    #{endDate},
+    #{goodsStatusRemark},
+    #{auctionGoodsId},
+    #{interestCount}
+    )
+  </insert>
+
+  <insert id="insertById" useGeneratedKeys="true" keyProperty="id" parameterType="com.art.manager.pojo.auction.AuctionGoods">
+    insert into t_auction_goods
+    (`goods_name`,
+    `start_price`,
+    `base_amount`,
+    `increment_step`,
+    `one_price`,
+    `category_id`,
+    `artist_id`,
+    `create_year`,
+    `subject`,
+    `specification`,
+    `transport_amount`,
+    `user_id`,
+    `username`,
+    `use_scene`,
+    `introduction`,
+    `show_pic`,
+    `start_date`,
+    `end_date`,
+    auction_goods_id,
+    setting_status)
+    select  `goods_name`,
+            `start_price`,
+            `base_amount`,
+            `increment_step`,
+            `one_price`,
+            `category_id`,
+            `artist_id`,
+            `create_year`,
+            `subject`,
+            `specification`,
+            `transport_amount`,
+            `user_id`,
+            `username`,
+            `use_scene`,
+            `introduction`,
+            `show_pic`,
+            `start_date`,
+            `end_date`,
+            auction_goods_id,
+            setting_status
+    from t_auction_goods
+    where id = #{id}
+  </insert>
+
+  <update id="deleteByIds" parameterType="java.util.List">
+    update t_auction_goods
+    set status = 0
+    where id in
+    <foreach collection ="ids" item="id" separator ="," open="(" close=")">
+      #{id}
+    </foreach >
+    and status = 1
+  </update>
+
+  <update id="updateById" parameterType="com.art.manager.pojo.auction.AuctionGoods">
+    update t_auction_goods
+    <set >
+      <if test="goodsName != null and goodsName != ''" >
+        `goods_name` = #{goodsName},
+      </if>
+      <if test="startPrice != null" >
+        start_price = #{startPrice},
+      </if>
+      <if test="baseAmount != null" >
+        base_amount = #{baseAmount},
+      </if>
+      <if test="incrementStep != null" >
+        increment_step = #{incrementStep},
+      </if>
+      <if test="onePrice != null" >
+        one_price = #{onePrice},
+      </if>
+      <if test="styleCode != null" >
+        category_id = #{styleCode},
+      </if>
+      <if test="artistId != null" >
+        artist_id = #{artistId},
+      </if>
+      <if test="createYear != null and createYear != ''" >
+        create_year = #{createYear},
+      </if>
+      <if test="subject != null and subject != ''" >
+        subject = #{subject},
+      </if>
+      <if test="specification != null and specification != ''" >
+        `specification` = #{specification},
+      </if>
+      <if test="transportAmount != null" >
+        transport_amount = #{transportAmount},
+      </if>
+      <if test="userId != null and userId != ''" >
+        `user_id` = #{userId},
+      </if>
+      <if test="username != null and username != ''" >
+        `username` = #{username},
+      </if>
+      <if test="useScene != null and useScene != ''" >
+        `use_scene` = #{useScene},
+      </if>
+      <if test="introduction != null and introduction != ''" >
+        `introduction` = #{introduction},
+      </if>
+      <if test="showPic != null and showPic != ''" >
+        `show_pic` = #{showPic},
+      </if>
+      <if test="startDate != null and startDate != ''" >
+        start_date = #{startDate},
+      </if>
+      <if test="endDate != null and endDate != ''" >
+        end_date = #{endDate},
+      </if>
+      <if test="nextEndDate != null" >
+        end_date = #{nextEndDate},
+      </if>
+      <if test="settingStatus != null" >
+        setting_status = #{settingStatus},
+      </if>
+      <if test="goodsStatus != null and goodsStatus != ''" >
+        goods_status = #{goodsStatus},
+      </if>
+      <if test="resetStatus != null" >
+        reset_status = #{resetStatus},
+      </if>
+      <if test="autoProxy != null" >
+        auto_proxy = #{autoProxy},
+      </if>
+      <if test="auctionGoodsId != null and auctionGoodsId != ''" >
+        auction_goods_id = #{auctionGoodsId},
+      </if>
+    </set>
+    where id = #{id}
+    and status = 1
+  </update>
+
+  <select id="getList" parameterType="com.art.manager.request.AuctionGoodsReq" resultType="com.art.manager.vo.AuctionGoodsVo">
+    SELECT
+    `id`,
+    `goods_name` goodsName,
+    `show_pic` showPic,
+    `start_price` startPrice,
+    `base_amount` baseAmount,
+    `increment_step` incrementStep,
+    `one_price` onePrice,
+    `start_date` startDate,
+    `end_date` endDate,
+    `goods_status` goodsStatus,
+    `username` username,
+    create_time createTime,
+    update_time updateTime,
+    auction_goods_id auctionGoodsId,
+    interest_count interestCount,
+    transport_amount transportAmount
+    FROM t_auction_goods
+    where status = 1
+    and reset_status = 1
+    <if test="goodsName != null and goodsName != ''">
+      and `goods_name` like concat('%',#{goodsName},'%')
+    </if>
+    <if test="startPrice != null">
+      and start_price = #{startPrice}
+    </if>
+    <if test="baseAmount != null">
+      and base_amount = #{baseAmount}
+    </if>
+    <if test="goodsStatus != null and goodsStatus != ''">
+      and goods_status = #{goodsStatus}
+    </if>
+    <if test="startTime != null and startTime != ''">
+      and create_time &gt;= #{startTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      and create_time &lt; DATE_ADD(#{endTime},INTERVAL 1 DAY)
+    </if>
+    order by create_time desc
+  </select>
+
+  <select id="selectById" parameterType="com.art.manager.request.AuctionGoodsReq" resultType="com.art.manager.vo.AuctionGoodsVo">
+    SELECT
+	  g.`id`,
+      g.`goods_name` goodsName,
+      g.`auction_goods_id` auctionGoodsId,
+      g.`start_price` startPrice,
+      g.`base_amount` baseAmount,
+      g.`increment_step` incrementStep,
+      g.`one_price` onePrice,
+      g.`category_id` styleCode,
+      c.`name` categoryName,
+      g.`artist_id` artistId,
+      a.`name` artistName,
+      a.warrant_url warrantUrl,
+      a.credential_url credentialUrl,
+      a.desc,
+      g.`create_year` createYear,
+      g.`subject`,
+      g.`specification`,
+      g.`transport_amount` transportAmount,
+      g.`user_id` userId,
+      g.`username`,
+      g.`use_scene` useScene,
+      g.`introduction`,
+      g.`show_pic` showPic,
+      g.`start_date` startDate,
+      g.`end_date` endDate,
+      g.`goods_status` goodsStatus,
+      g.`create_time` createTime,
+      g.`update_time` updateTime,
+      cc.id typeCode,
+      cc.name parentName,
+      g.interest_count interestCount
+    FROM t_auction_goods g
+        left join t_artist_info a on g.artist_id = a.id
+        left join t_category_config c on g.category_id = c.id
+        left join t_category_config cc on c.parent_id = cc.id
+    WHERE g.id = #{id}
+        and g.status = 1
+  </select>
+
+  <select id="selectOneById" parameterType="com.art.manager.request.AuctionGoodsReq" resultType="com.art.manager.vo.AuctionGoodsVo">
+    SELECT
+	  g.`id`,
+      g.`goods_name` goodsName,
+      g.`start_price` startPrice,
+      g.`base_amount` baseAmount,
+      g.`increment_step` incrementStep,
+      g.`one_price` onePrice,
+      g.`category_id` styleCode,
+      g.`artist_id` artistId,
+      g.`create_year` createYear,
+      g.`subject`,
+      g.`specification`,
+      g.`transport_amount` transportAmount,
+      g.`user_id` userId,
+      g.`username`,
+      g.`use_scene` useScene,
+      g.`introduction`,
+      g.`show_pic` showPic,
+      g.`start_date` startDate,
+      g.`end_date` endDate,
+      g.`setting_status` settingStatus,
+      g.`goods_status` goodsStatus,
+      g.`create_time` createTime,
+      g.`update_time` updateTime,
+      g.`auto_proxy` autoProxy
+    FROM t_auction_goods g
+    WHERE g.id = #{id}
+        and g.status = 1
+  </select>
+
+  <!-- 定时任务：修改商品状态1:未开始->2:拍卖中 -->
+  <update id="updateGoodsStatusToInAction" parameterType="com.art.manager.pojo.schedule.AuctionGoodsShedule">
+    update t_auction_goods
+    set goods_status = #{currentGoodsStatus},
+        goods_status_remark = #{goodsStatusRemark}
+    where start_date &lt;= #{currentTime}
+    and end_date &gt; #{currentTime}
+    and status = 1
+    and goods_status = #{preGoodsStatus}
+  </update>
+
+  <!-- 定时任务：修改商品状态 2:拍卖中->3:竞拍成功或0:流拍 或 订单失效 3:竞拍成功->0:流拍-->
+  <update id="batchUpdateGoodsStatusToActionSuccess" parameterType="java.util.List">
+    <foreach collection="params" item="param" index="index" open="" close="" separator=";">
+      update t_auction_goods
+      <set>
+        goods_status = #{param.currentGoodsStatus},
+        goods_status_remark = #{param.goodsStatusRemark}
+      </set>
+      where id = #{param.id}
+      <!-- and end_date &lt; #{param.currentTime} -->
+      and goods_status = #{param.preGoodsStatus}
+      and status = 1
+    </foreach>
+  </update>
+
+  <!-- 支付完成修改商品状态 3:竞拍成功->4:已出售-->
+  <update id="updateGoodsStatusToSale" parameterType="java.lang.Long">
+    update t_auction_goods
+      set goods_status = '4',
+          goods_status_remark = 'pay goods update status to sale'
+    where id = #{goodsId}
+    and goods_status = '3'
+    and status = 1
+  </update>
+
+  <!-- 定时任务：查询拍卖中2 的商品-->
+  <select id="selectGoodsStatusInAction" parameterType="com.art.manager.pojo.schedule.AuctionGoodsShedule" resultType="java.lang.Long">
+    SELECT id
+    FROM t_auction_goods
+    WHERE end_date &lt; #{currentTime}
+    AND STATUS = 1
+    AND goods_status = #{preGoodsStatus}
+  </select>
+
+
+  <select id="getAuctionGoodList" parameterType="java.util.Map" resultType="com.art.manager.pojo.auction.AuctionGoods">
+    select
+     *
+    from  t_auction_goods
+    where status = 1
+    <if test="commdityName != null and commdityName != ''">
+      and goods_name like CONCAT('%',#{commdityName},'%')
+    </if>
+    <if test="styleCode != null and styleCode != ''">
+      and category_id  = #{styleCode}
+    </if>
+  </select>
+
+  <!-- 查询今日、明日拍卖商品 -->
+  <select id="selectTodayAndTomorrowGoods" parameterType="java.util.Map" resultType="com.art.manager.vo.H5AuctionGoodsVo">
+    (SELECT
+        id,
+        goods_name goodsName,
+        start_price startPrice,
+        start_date startDate,
+        end_date endDate,
+        show_pic showPic,
+        base_amount baseAmount,
+        goods_status goodsStatus,
+        create_time createTime,
+        update_time updateTime,
+        <!-- start_price currentPrice,-->
+   interest_count interestCount
+FROM t_auction_goods
+WHERE `status` = 1
+and reset_status = 1
+and goods_status in('1','2')
+<if test="startTime != null">
+  and start_date &gt;= #{startTime}
+</if>
+<if test="endTime != null">
+ and start_date &lt; #{endTime}
+</if>
+and end_date&gt;now()
+order by end_date)
+union all
+(SELECT
+ id,
+ goods_name goodsName,
+ start_price startPrice,
+ start_date startDate,
+ end_date endDate,
+ show_pic showPic,
+ base_amount baseAmount,
+ goods_status goodsStatus,
+ create_time createTime,
+ update_time updateTime,
+  <!--start_price currentPrice,-->
+  interest_count interestCount
+ FROM t_auction_goods
+ WHERE `status` = 1
+ and reset_status = 1
+ and goods_status in('1','2')
+    <if test="startTime != null">
+  and start_date &gt;= #{startTime}
+ </if>
+ <if test="endTime != null">
+  and start_date &lt; #{endTime}
+ </if>
+ and end_date&lt;=now()
+ order by end_date)
+ </select>
+
+  <!-- 查询预展拍卖商品 -->
+  <select id="selectPreGoods" parameterType="java.util.Map" resultType="com.art.manager.vo.H5AuctionGoodsVo">
+    (SELECT
+    id,
+    goods_name goodsName,
+    start_price startPrice,
+    start_date startDate,
+    end_date endDate,
+    show_pic showPic,
+    base_amount baseAmount,
+    goods_status goodsStatus,
+    create_time createTime,
+    update_time updateTime,
+    <!-- start_price currentPrice,-->
+    interest_count interestCount
+    FROM t_auction_goods
+    WHERE `status` = 1
+    and reset_status = 1
+    and goods_status ='1'
+    <if test="startTime != null">
+      and start_date &gt;= #{startTime}
+    </if>
+    <if test="endTime != null">
+      and start_date &lt; #{endTime}
+    </if>
+    and end_date&gt;now()
+    order by end_date)
+    union all
+    (SELECT
+    id,
+    goods_name goodsName,
+    start_price startPrice,
+    start_date startDate,
+    end_date endDate,
+    show_pic showPic,
+    base_amount baseAmount,
+    goods_status goodsStatus,
+    create_time createTime,
+    update_time updateTime,
+    <!--start_price currentPrice,-->
+    interest_count interestCount
+    FROM t_auction_goods
+    WHERE `status` = 1
+    and reset_status = 1
+    and goods_status ='1'
+    <if test="startTime != null">
+      and start_date &gt;= #{startTime}
+    </if>
+    <if test="endTime != null">
+      and start_date &lt; #{endTime}
+    </if>
+    and end_date&lt;=now()
+    order by end_date)
+  </select>
+
+  <!-- 查询历史拍卖商品 -->
+  <select id="selectHistoryGoods" parameterType="java.util.Map" resultType="com.art.manager.vo.H5AuctionGoodsVo">
+    SELECT
+      id,
+      goods_name goodsName,
+      start_price startPrice,
+      start_date startDate,
+      end_date ,
+      show_pic showPic,
+      base_amount baseAmount,
+      goods_status goodsStatus,
+      create_time createTime,
+      update_time updateTime,
+      interest_count interestCount
+    FROM t_auction_goods
+    WHERE `status` = 1
+      and end_date &lt; #{currentTime}
+      and reset_status = 1
+      and goods_status in('0','3','4')
+      <!-- timeType:0是全部 -->
+    <if test="timeType != null and timeType != '0'">
+      and start_date &gt;= #{startTime}
+      and start_date &lt; #{endTime}
+      order by end_date desc, create_time desc
+    </if>
+  </select>
+
+
+  <select id="getAuctionGoods" parameterType="java.lang.Long" resultType="com.art.manager.pojo.auction.AuctionGoods">
+    select
+    *
+    from  t_auction_goods
+    where status = 1
+    <if test="goodsId != null and goodsId != ''">
+      and id = #{goodsId}
+    </if>
+  </select>
+
+  <select id="getAuctionGoodsStatus" parameterType="java.lang.Long" resultType="com.art.manager.pojo.auction.AuctionGoods">
+    select
+    *
+    from  t_auction_goods
+    where status = 1 and goods_status != 2
+    <if test="goodsId != null and goodsId != ''">
+      and id = #{goodsId}
+    </if>
+  </select>
+
+
+  <select id="todayCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+    select IFNULL(count(*), 0) count
+    FROM t_auction_goods
+    WHERE `status` = 1
+    and reset_status = 1
+    and goods_status in('1','2')
+    <if test="startTime != null">
+      and start_date &gt;= #{startTime}
+    </if>
+    <if test="endTime != null">
+      and start_date &lt; #{endTime}
+    </if>
+  </select>
+
+  <select id="preCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+    select IFNULL(count(*), 0) count
+    FROM t_auction_goods
+    WHERE `status` = 1
+    and reset_status = 1
+    and goods_status ='1'
+    <if test="startTime != null">
+      and start_date &gt;= #{startTime}
+    </if>
+    <if test="endTime != null">
+      and start_date &lt; #{endTime}
+    </if>
+  </select>
+
+  <select id="historyCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+    select IFNULL(count(*), 0) count
+    FROM t_auction_goods
+    WHERE `status` = 1
+    and reset_status = 1
+    and goods_status in('0','3','4')
+    and end_date &lt; #{currentTime}
+  </select>
+
+
+  <select id="getBaseAmount" parameterType="java.lang.String" resultType="java.math.BigDecimal">
+   select base_amount from t_auction_goods where id = #{id}
+  </select>
+
+  <!-- 批量修改自动代理出价为已失效 0-->
+  <update id="batchUpdateAutoProxyToInvalid">
+    UPDATE t_auction_goods a
+      SET a.auto_proxy = 0
+    WHERE a.goods_status = '2'
+    AND a.auto_proxy = 1
+    AND a.STATUS = '1'
+    AND NOT EXISTS ( SELECT 1 FROM t_auction_proxy_limit l WHERE l.goods_id = a.id AND l.proxy_status = 1 AND l.`status` = 1 )
+  </update>
+
+  <!-- 修改关注人数+7-->
+  <update id="updateInterestCount" >
+    UPDATE t_auction_goods a
+      SET a.interest_count = IFNULL(a.interest_count,0) + #{interestCount}
+    WHERE a.STATUS = 1
+     and a.id = #{id}
+  </update>
+
+</mapper>

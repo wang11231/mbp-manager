@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.art.manager.mapper.CommonCommodityMapper">
+    <resultMap id="BaseResultMap" type="com.art.manager.pojo.CommonCommodity">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="commdity_name" property="commdityName" jdbcType="VARCHAR"/>
+        <result column="show_picture" property="showPicture" jdbcType="VARCHAR"/>
+        <result column="type_code" property="typeCode" jdbcType="INTEGER"/>
+        <result column="style_code" property="styleCode" jdbcType="INTEGER"/>
+        <result column="marke_price" property="markePrice" jdbcType="DECIMAL"/>
+        <result column="discount_price" property="discountPrice" jdbcType="DECIMAL"/>
+        <result column="artist" property="artist" jdbcType="VARCHAR"/>
+        <result column="special_id" property="specialId" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="price" property="price" jdbcType="DECIMAL"/>
+        <result column="interest_count" property="interestCount" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+      id, commdity_name, show_picture, type_code, style_code, marke_price, discount_price,status,create_time,update_time, artist_id, special_id, freight,operator,is_recommend,creation_year,core_specification,stock,good_id,price,introduction_works,interest_count
+    </sql>
+
+    <insert id="insertCommonCommodity" parameterType="com.art.manager.pojo.CommonCommodity" useGeneratedKeys="true" keyProperty="id">
+     insert into t_common_commodity (commdity_name,marke_price, discount_price, core_specification, type_code, style_code, artist_id, creation_year,
+     theme,create_time, update_time, show_picture, freight, author, use_scene, introduction_works, special_id, operator,is_recommend, good_id,price,interest_count)
+     values (#{commdityName}, #{markePrice},#{discountPrice}, #{coreSpecification},  #{typeCode}, #{styleCode}, #{artistId}, #{creationYear},
+     #{theme}, #{createTime},#{updateTime}, #{showPicture}, #{freight}, #{author}, #{useScene}, #{introductionWorks}, #{specialId}, #{operator},#{isRecommend},#{goodId},#{price},#{interestCount})
+    </insert>
+    <select id="selectByCondition" resultType="com.art.manager.dto.CommonCommodityDto">
+        select
+        <include refid="Base_Column_List" />
+        from t_common_commodity
+        where status != 1
+        <if test="commdityName != null and commdityName != ''">
+            and commdity_name like CONCAT('%',#{commdityName},'%')
+        </if>
+        <if test="artistId != null">
+             and artist_id IN
+             <foreach collection ="artistId" item="id" separator ="," open="(" close=")">
+                 #{id}
+             </foreach>
+        </if>
+         <if test="status != null and status != ''">
+            and status like CONCAT('%',#{status},'%')
+        </if>
+        <if test="typeCode != null and typeCode != ''">
+            and type_code like CONCAT('%',#{typeCode},'%')
+        </if>
+        <if test="styleCode != null and styleCode != ''">
+            and style_code like CONCAT('%',#{styleCode},'%')
+        </if>
+        <if test="goodStatus != null and goodStatus != ''">
+            <choose >
+                <when test="goodStatus == 1">
+                    and stock > 0
+                </when>
+                <otherwise>
+                    and stock = 0
+                </otherwise>
+            </choose>
+        </if>
+        <if test="specialId != null and specialId != ''">
+            AND special_id =#{specialId}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND  create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND  create_time &lt; DATE_ADD(#{endTime},INTERVAL 1 DAY)
+        </if>
+        order by status, id desc
+    </select>
+    <update id="updateCommonCommodity" parameterType="com.art.manager.pojo.CommonCommodity">
+     update t_common_commodity
+     set commdity_name =#{commdityName},
+     marke_price = #{markePrice},
+     discount_price = #{discountPrice},
+     type_code = #{typeCode},
+     style_code = #{styleCode},
+     update_time = #{updateTime},
+     core_specification = #{coreSpecification},
+     artist_id = #{artistId},
+     creation_year = #{creationYear},
+     theme = #{theme},
+     create_time = #{createTime},
+     freight = #{freight},
+     author = #{author},
+     use_scene = #{useScene},
+     introduction_works = #{introductionWorks},
+     special_id = #{specialId},
+     operator = #{operator},
+     is_recommend =#{isRecommend},
+     price = #{price},
+     good_id = #{goodId}
+     where id = #{id}
+  </update>
+
+    <select id="selectAll" resultType="com.art.manager.dto.CommonCommodityDto">
+        select
+        <include refid="Base_Column_List"/>
+        from t_common_commodity
+        where status = '2'
+        order by id desc
+    </select>
+
+    <update id="BatchDel" parameterType="java.util.List">
+      update t_common_commodity
+      set status = '1'
+      where id in 
+      <foreach collection="ids" item="id" separator="," open="(" close=")">
+        #{id}
+      </foreach>
+    </update>
+
+    <update id="updateStatus" parameterType="java.util.Map">
+        update t_common_commodity
+        set status = #{status},
+        operator = #{operator}
+        where id = #{id}
+    </update>
+
+    <select id="getListBySpecialId" resultType="com.art.manager.vo.CommonCommodityVo">
+        select tc.id, tc.commdity_name, tc.type_code, tc.style_code, t.name typeName, tcc.name styleName, tc.marke_price, tc.discount_price, tc.special_id,tc.price
+         from t_common_commodity tc
+         left join t_category_config t on tc.type_code = t.id
+         left join t_category_config tcc on tc.style_code = tcc.id
+          where tc.special_id in
+        <foreach collection ="list" item="id" separator ="," open="(" close=")">
+            #{id}
+        </foreach >
+        and tc.status = 0
+    </select>
+
+    <update id="delectCommodity" parameterType="java.util.List">
+        update t_common_commodity
+        set status = '1'
+        where special_id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="getCommonCommodity" resultType="com.art.manager.pojo.CommonCommodity" parameterType="java.lang.Long">
+        select tc.id, tc.commdity_name, tc.marke_price, tc.discount_price, tc.core_specification, tc.status, tc.creation_year, tc.create_time, tc.show_picture,
+        tc.freight, tc.author, tc.operator,tc.is_recommend, tc.use_scene, tc.introduction_works, ta.name artist, tcc.name typeName, cc.name styleName, ts.special_name specialField,
+        tc.type_code, tc.style_code, tc.artist_id, tc.special_id, tc.theme, tc.good_id,tc.price
+		from t_common_commodity tc
+        left join t_artist_info ta on tc.artist_id = ta.id
+        left join t_category_config tcc on tc.type_code = tcc.id
+        left join t_category_config cc on tc.style_code = cc.id
+        left join t_special ts on tc.special_id = ts.id
+        where tc.id = #{id}
+    </select>
+
+    <select id="getCommodityById" resultType="com.art.manager.dto.CommodityDto">
+        select id, commdity_name from t_common_commodity where special_id = #{specialId}
+    </select>
+
+    <select id="getCommodityVo" resultType="com.art.manager.vo.CommodityVo">
+        select tc.id, t.special_title, tc.marke_price, tc.core_specification, tc.show_picture
+        from t_common_commodity tc
+        left join t_special t on tc.special_id = t.id
+        where tc.id = #{id}
+    </select>
+
+    <select id="getCommodityName" resultType="com.art.manager.dto.CommodityDto">
+        select id, commdity_name,marke_price,discount_price,core_specification,show_picture,price,stock from t_common_commodity where id = #{id}
+    </select>
+
+    <select id="getBoutiqueList" resultType="com.art.manager.pojo.CommonCommodity">
+        select * from t_common_commodity where is_recommend =0 and status = 0 order by id desc
+    </select>
+
+    <select id="getCommonShopList" resultType="com.art.manager.pojo.CommonCommodity">
+       select * from t_common_commodity where  status = 0 order by update_time desc
+    </select>
+
+    <select id="getSpecialCommodityList" parameterType="java.util.Map" resultType="com.art.manager.pojo.CommonCommodity">
+      select * from t_common_commodity where special_id = #{specialId}
+    </select>
+
+    <select id="getCommonCommodityById" resultType="com.art.manager.pojo.CommonCommodity">
+        select
+        <include refid="Base_Column_List" />
+        from t_common_commodity
+        where id = #{id}
+    </select>
+    <select id="selectByCommdityname" resultType="java.lang.Integer">
+        select COUNT(commdity_name) from t_common_commodity where commdity_name=#{commdityName}
+    </select>
+
+    <select id="getSearchList" parameterType="java.util.Map" resultType="com.art.manager.pojo.CommonCommodity">
+        select
+        <include refid="Base_Column_List" />
+        from t_common_commodity
+        where status = 0
+        <if test="commdityName != null and commdityName != ''">
+            and commdity_name like CONCAT('%',#{commdityName},'%')
+        </if>
+        <if test="styleCode != null and styleCode != ''">
+            and style_code = #{styleCode}
+        </if>
+    </select>
+
+    <select id="selectCommonCommodity" resultType="com.art.manager.pojo.CommonCommodity">
+        select * from t_common_commodity where id = #{id}
+    </select>
+
+    <select id="commodityList" parameterType="com.art.manager.request.CommodityReq" resultType="com.art.manager.pojo.CommonCommodity">
+        select
+        <include refid="Base_Column_List" />
+        from t_common_commodity
+        where status = 0
+        <if test="specialId != null and specialId != ''">
+            and special_id = #{specialId}
+        </if>
+        <if test="styleCodeList != null and styleCodeList.size>0">
+            and style_code in
+            <foreach collection="styleCodeList" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="styleCode != null and styleCode != ''">
+            and style_code = #{styleCode}
+        </if>
+        <if test="typeCode != null and typeCode != ''">
+            and type_code = #{typeCode}
+        </if>
+        <if test="minPrice != null and minPrice != ''">
+            and price &gt;= #{minPrice}
+        </if>
+        <if test="maxPrice != null and maxPrice != ''">
+            and price &lt; #{maxPrice}
+        </if>
+        <if test="isRecommend != null and isRecommend != ''">
+            and is_recommend = #{isRecommend}
+        </if>
+        <choose>
+            <when test="isBuy != null and isBuy != '' and isBuy == 1">
+                and stock > 0
+            </when>
+            <when test="isBuy != null and isBuy != '' and isBuy == 0">
+                and stock = 0
+            </when>
+        </choose>
+         order by
+        <choose>
+            <when test="sort != null and sort == 1">
+                price desc,
+            </when>
+            <when test="sort != null and sort == 0">
+                price asc,
+            </when>
+        </choose>
+        create_time desc
+    </select>
+
+    <select id="getCommodityByName" resultType="com.art.manager.pojo.CommonCommodity">
+        select
+        <include refid="Base_Column_List" />
+        from t_common_commodity
+        where commdity_name = #{commdityName}
+    </select>
+
+    <select id="idList" resultType="java.lang.Long">
+        select id from t_common_commodity
+        where commdity_name = #{commdityName}
+    </select>
+    
+    <update id="updateStock">
+        update t_common_commodity
+        set stock = #{stock},
+        update_time = #{updateTime}
+        where id = #{id}
+    </update>
+
+    <!-- 修改关注人数+7-->
+    <update id="updateInterestCount">
+    UPDATE t_common_commodity a
+      SET a.interest_count = IFNULL(a.interest_count,0) + #{interestCount}
+    WHERE a.id = #{id}
+  </update>
+
+</mapper>

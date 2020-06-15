@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.manager.mapper.auction.AuctionPicMapper">
+
+  <insert id="insertByAuctionId" parameterType="java.util.List">
+    insert into t_auction_pic(`auction_id`, `works_url`)
+    values
+    <foreach collection ="list" item="item" index= "index" separator =",">
+      (#{item.auctionId},#{item.worksUrl})
+    </foreach >
+  </insert>
+
+  <insert id="insertByGoodsId" parameterType="com.art.manager.pojo.auction.AuctionPic">
+    insert into t_auction_pic(`auction_id`, `works_url`)
+    select #{nextAuctionId}, `works_url`
+      from t_auction_pic
+    where `auction_id` = #{auctionId}
+      and status = 1
+  </insert>
+
+  <update id="deleteByAuctionId" parameterType="java.util.List">
+    update t_auction_pic
+    set status = 0
+    where auction_id in
+    <foreach collection ="ids" item="id" separator ="," open="(" close=")">
+      #{id}
+    </foreach >
+    and status = 1
+  </update>
+
+  <select id="selectByAuctionId" parameterType="com.art.manager.pojo.auction.AuctionPic" resultType="com.art.manager.vo.AuctionPicVo">
+    select id, auction_id auctionId, works_url worksUrl
+    from t_auction_pic
+    where auction_id = #{auctionId}
+    and status = 1
+  </select>
+
+</mapper>

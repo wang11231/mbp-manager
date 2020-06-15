@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.manager.mapper.auction.AuctionProcessMapper">
+
+  <insert id="insert" parameterType="com.art.manager.pojo.auction.AuctionProcess">
+    insert into t_auction_process
+     (goods_id,
+      goods_name,
+      user_id,
+      username,
+      current_price,
+      add_price_type,
+      process_status,
+      remark,
+      addrId
+    )
+    values
+     (#{goodsId},
+      #{goodsName},
+      #{userId},
+      #{username},
+      #{currentPrice},
+      #{addPriceType},
+      #{processStatus},
+      #{remark},
+      #{addrId})
+  </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+    insert into t_auction_process
+     (goods_id,goods_name,user_id,username,current_price,add_price_type,process_status,remark,addrId)
+    values
+    <foreach collection ="list" item="process" index= "index" separator =",">
+        (#{process.goodsId}, #{process.goodsName},#{process.userId},#{process.username},#{process.currentPrice},#{process.addPriceType},#{process.processStatus},#{process.remark},#{process.addrId})
+    </foreach >
+  </insert>
+
+  <select id="getList" parameterType="com.art.manager.request.AuctionProcessReq" resultType="com.art.manager.pojo.auction.AuctionProcess">
+    SELECT
+        id,
+        goods_id goodsId,
+        goods_name goodsName,
+        user_id userId,
+        username,
+        current_price currentPrice,
+        add_price_type addPriceType ,
+        process_status processStatus,
+        status,
+        create_time createTime,
+        update_time updateTime
+    FROM t_auction_process
+    where status = 1
+    and goods_id = #{goodsId}
+    order by id desc
+  </select>
+
+  <update id="updateStatusByGoodsId" parameterType="com.art.manager.pojo.auction.AuctionProcess">
+    update t_auction_process
+    set process_status = #{processStatus}
+    where goods_id = #{goodsId}
+    and status = 1
+    and process_status = '2'
+  </update>
+
+    <select id="selectByUsername" parameterType="java.lang.String" resultType="com.art.manager.pojo.auction.AuctionProcess">
+    select  p.goods_id goodsId,
+            p.add_price_type addPriceType ,
+            p.current_price currentPrice
+    from t_auction_process p,
+        (SELECT
+            goods_id,
+            add_price_type,
+            max(id) id
+        FROM t_auction_process
+        WHERE STATUS = 1
+        AND username = #{username}
+        GROUP BY goods_id, add_price_type
+        ORDER BY goods_id) tmp
+    where p.goods_id = tmp.goods_id
+    and p.add_price_type = tmp.add_price_type
+    and p.id = tmp.id
+    and p.status = 1
+    order by p.goods_id,p.add_price_type
+    </select>
+
+    <select id="selectByIds" parameterType="java.util.List" resultType="com.art.manager.pojo.auction.AuctionProcess">
+        select p.goods_id goodsId,
+               p.current_price currentPrice,
+               p.add_price_type addPriceType,
+               p.goods_name goodsName,
+               p.username
+        from t_auction_process p,
+            (SELECT
+                goods_id,
+                max(id) id
+            FROM t_auction_process
+            WHERE STATUS = 1
+            and goods_id IN
+            <foreach collection ="ids" item="id" separator ="," open="(" close=")">
+                #{id}
+            </foreach>
+            GROUP BY goods_id) tmp
+        where p.goods_id = tmp.goods_id
+        and p.id = tmp.id
+        and p.status = 1
+    </select>
+
+    <!-- 个人中心：查询用户参与拍品的商品信息 -->
+    <select id="selectProxyLimitByUser" parameterType="java.lang.String" resultType="com.art.manager.pojo.auction.AuctionProcess">
+    select  p.goods_id goodsId,
+            p.add_price_type addPriceType ,
+            p.current_price currentPrice,
+            p.process_status processStatus
+    from t_auction_process p,
+        (SELECT
+            goods_id,
+            max(id) id
+        FROM t_auction_process
+        WHERE STATUS = 1
+        AND username = #{username}
+        GROUP BY goods_id) tmp
+    where p.goods_id = tmp.goods_id
+    and p.id = tmp.id
+    and p.status = 1
+    </select>
+
+    <!-- 已参拍：查询用户商品的出价 -->
+    <select id="selectUserGoodsPrice" parameterType="com.art.manager.pojo.auction.AuctionProcess" resultType="com.art.manager.pojo.auction.AuctionProcess">
+        select  p.goods_id goodsId,
+                p.add_price_type addPriceType ,
+                p.current_price currentPrice,
+                p.username
+        from t_auction_process p
+        where p.goods_id = #{goodsId}
+        AND p.username = #{username}
+        and p.status = 1
+        order by p.id desc
+        limit 1
+    </select>
+
+    <!-- 定时任务：查询拍卖中商品的流程信息 -->
+    <select id="selectProcessByIds" parameterType="java.util.List" resultType="java.lang.Long">
+        SELECT distinct goods_id
+        FROM t_auction_process
+        WHERE  STATUS = 1
+        and goods_id IN
+        <foreach collection ="ids" item="id" separator ="," open="(" close=")">
+            #{id}
+        </foreach >
+    </select>
+
+    <select id="getCurrentPrice" parameterType="java.lang.Long" resultType="com.art.manager.pojo.auction.AuctionProcess">
+        select * from t_auction_process t where t.goods_id = #{goodsId} and status= 1 and process_status = 2
+
+    </select>
+
+    <!-- 代理出价:批量修改代理状态领先或出局-->
+    <update id="batchUpdateProxyStatus" parameterType="java.lang.Long">
+        update t_auction_process p
+        inner join (select max(a.id) id from t_auction_process a where a.`status` = 1 and a.goods_id = #{goodsId}) tmp
+        set p.process_status = (case when p.id = tmp.id then '2' else '1' end)
+        where p.`status` = 1
+        and p.goods_id = #{goodsId}
+    </update>
+
+    <select id="getAlreadyWentUnsold" resultType="com.art.manager.pojo.auction.AuctionProcess">
+        SELECT
+*
+FROM
+	t_auction_process
+WHERE
+	username = #{mobile}
+	and current_price= (SELECT MAX(current_price) FROM t_auction_process where username = #{mobile})
+    </select>
+</mapper>
