@@ -45,9 +45,9 @@ logging:
   config: classpath:logback-manager.xml
 
 web:
-  host: http://hhys.grandcnart.com/wechat/index.html#
-  redirectUrl: http://hhys.grandcnart.com/wechat/jump.html?target=http://hhys.grandcnart.com/wechat/index.html_/login?
-  indexUrl: http://hhys.grandcnart.com/wechat/jump.html?target=http://hhys.grandcnart.com/wechat/index.html_/
+  host: http://hhshy.grandcnart.com/wechat/index.html#
+  redirectUrl: http://hhshy.grandcnart.com/wechat/jump.html?target=http://hhshy.grandcnart.com/wechat/index.html_/login?
+  indexUrl: http://hhshy.grandcnart.com/wechat/jump.html?target=http://hhshy.grandcnart.com/wechat/index.html_/
 
 upload:
   picture:

@@ -46,7 +46,7 @@ logging:
   config: classpath:logback-manager.xml
 
 web:
-  host: hhys.grandcnart.com/#
+  host: hhshy.grandcnart.com/#
 
 upload:
   picture:
