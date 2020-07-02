@@ -188,7 +188,7 @@
         where id = #{id}
     </select>
     <select id="selectByCommdityname" resultType="java.lang.Integer">
-        select COUNT(commdity_name) from t_common_commodity where commdity_name=#{commdityName}
+        select COUNT(commdity_name) from t_common_commodity where commdity_name=#{commdityName} and status != 1
     </select>
 
     <select id="getSearchList" parameterType="java.util.Map" resultType="com.art.manager.pojo.CommonCommodity">
