@@ -93,7 +93,8 @@
      operator = #{operator},
      is_recommend =#{isRecommend},
      price = #{price},
-     good_id = #{goodId}
+     good_id = #{goodId},
+     show_picture = #{showPicture}
      where id = #{id}
   </update>
 
