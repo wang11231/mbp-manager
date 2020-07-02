@@ -266,7 +266,7 @@
 
     <select id="idList" resultType="java.lang.Long">
         select id from t_common_commodity
-        where commdity_name = #{commdityName}
+        where commdity_name = #{commdityName} and status != 1
     </select>
     
     <update id="updateStock">
