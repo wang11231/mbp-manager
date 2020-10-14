@@ -1,7 +1,7 @@
 server:
   servlet:
     context-path: /
-  port: 8088
+  port: 8081
 mybatis:
   mapper-locations: classpath:mapper/**/*Mapper.xml
   config-location: classpath:mybatis-config.xml
